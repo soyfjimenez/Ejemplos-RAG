@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 import os
 from langchain_core.prompts import PromptTemplate
 from langchain_openai.chat_models import ChatOpenAI
-from core.tools import search_vdb, search_JSON
+from core.tools import search_documents, search_JSON, generate_csv, search_internet
 from langchain.agents import create_react_agent, AgentExecutor
 
 load_dotenv()
@@ -18,7 +18,10 @@ def create_agent_with_prompt(llm, tools):
     prompt = PromptTemplate(
         input_variables=["input", "tool_names", "agent_scratchpad"],
         template=""""
-        You are an intelligent assistant that always thinks in English, capable of providing funny responses using the tools: {tool_names}.
+        You are an intelligent assistant that always thinks in English, capable of using the tools: {tool_names}.
+        
+        You must always answer following the requested formatting. 
+        
         Here are the available tools: {tools}
 
         If you need to call a tool, respond using this exact format:
@@ -26,14 +29,17 @@ def create_agent_with_prompt(llm, tools):
         Thought: [Explain your reasoning]
         Action: Tool to call
         Action Input: Tool input in JSON format with no additional quotes around the entire input
-
-        If a tool response is received:
+        
+        If you can provide a direct answer, or if a tool response is received:
         - Extract all the relevant information to give a proper answer to user query.
+        - You cannot call a tool and provide a final answer on the same response. 
         - Provide a final answer in the following format:
 
-        Final Answer: [Your final response to the query: {input}. Include all relevant information with details.Answer always in spanish]
+        Final Answer: Your final response to the user query. 
+        Include all **relevant information** with details. Answer always in *spanish*. 
+        # You can use Markdown formatting only in this section. 
 
-        Query: {input}
+        User query: {input}
 
         {agent_scratchpad}
         """,
@@ -53,7 +59,7 @@ def ProcessUserInput(user_input, temperature):
         model_name="gpt-4o", temperature=temperature, openai_api_key=api_key
     )
 
-    tools = [search_vdb, search_JSON]
+    tools = [search_documents, search_JSON, generate_csv, search_internet]
 
     agent_executor = create_agent_with_prompt(llm, tools)
 

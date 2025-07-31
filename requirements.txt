@@ -1,9 +1,12 @@
 langchain==0.3.3
 python-dotenv
+langchain_core
 langchain_community==0.3.2
 langchain_openai==0.2.2
 langchain-qdrant
 PyPDF2
 streamlit
+sympy
+st-annotated-text
 
 
